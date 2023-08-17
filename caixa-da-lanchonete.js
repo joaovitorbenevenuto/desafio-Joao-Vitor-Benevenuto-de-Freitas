@@ -18,78 +18,94 @@ class CaixaDaLanchonete {
             codigo: "combo2", valor: 7.50,
         }
     ]
+    codigo = []
+    quantidade = []
+    carrinho = []
+    preco = []
+    metodoDePagamento = ""
     calcularValorDaCompra = (metodoDePagamento, itens) => {
-        const verificaçãoExtra = []
-        const verificaçãoCarrinhoeQtd = []
-        let produtoexistente = 0
-        let valorDaCompra = 0
-        itens.forEach(item => {                                             //VALOR A PAGAR
-            const codigoequantidade = item.split(",")                       //
-            const codigo = codigoequantidade[0] == "" ? false : codigoequantidade[0]                            //
-            verificaçãoCarrinhoeQtd.push(codigo)
-            const quantidade = codigoequantidade[1]                         //
-            verificaçãoCarrinhoeQtd.push(quantidade)
-            const produto = codigo == 0 ? false : this.cardapio.find((produto) => {             //
-                return produto.codigo == codigo                             //
-            })                                                              //
-            produtoexistente = produto
-            const preco = produto == false || produto == undefined ? 0 : produto.valor                                     //
-            valorDaCompra += preco * quantidade                             // 
-            verificaçãoExtra.push(codigo)
-        })
-        if (metodoDePagamento === "dinheiro") {                             // METODO DE PAGAMENTO
-            valorDaCompra -= valorDaCompra * 0.05                           //
-        } else if (metodoDePagamento === "credito") {                       //
-            valorDaCompra += valorDaCompra * 0.03                           //
-        } else if (metodoDePagamento == "debito") {                         //
-            valorDaCompra = valorDaCompra                                   //
-        } else { metodoDePagamento = false }                                //
-
-        const extraChantily = verificaçãoExtra.some((extra) => {             // EXTRA 
-            return extra == "chantily"
-        })
-        const extraQueijo = verificaçãoExtra.some((extra) => {               // EXTRA
-            return extra == "queijo"
+        this.metodoDePagamento = metodoDePagamento
+        const [compra] = itens
+        const separando = compra.split(",")
+        this.codigo.push(separando[0])
+        this.quantidade.push(separando[1])
+        this.carrinho.push(this.codigo)
+               
+        const produto = this.cardapio.find((produto) => {
+            return produto.codigo == this.codigo
         })
 
+        this.preco.push(produto.valor)
 
-        valorDaCompra = valorDaCompra.toFixed(2)                            //FORMATAÇAO VALOR DA COMPRA
-        let valorDaCompraString = `${valorDaCompra}`                        //
-        let valorDaCompraFormatado = "R$ " + valorDaCompraString.replace(".", ",")//
-
-        if (extraChantily == true) {                                          //VERIFICACAO PRINCIPAL
-            const temPrincipal = verificaçãoExtra.some((extra) => {          //
-                return extra == "cafe"                                      //
-            })                                                              //
-            if (!temPrincipal) {
-                valorDaCompraFormatado = "Item extra não pode ser pedido sem o principal"
-
+        if (!this.verificarRegras()) {
+            return this.valorDaCompra(this.preco, this.quantidade)
+        }
+    }
+    verificarRegras = () => {
+        if (!this.temPrincipal(this) &&
+            !this.temCarrinho(this.carrinho) &&
+            !this.temQuantidade(this.quantidade) &&
+            !this.temItem(this.cardapio)) {
+            return this.verificarRegras
+        }
+    }
+    valorDaCompra = (preco, quantidade) => {
+if(!this.verificarRegras()){
+        let total = this.preco * this.quantidade
+        let formaDePagamento = (metodoDePagamento) => {
+            if (metodoDePagamento == "dinheiro") {
+                return total -= total * 0.05
+            } else if (metodoDePagamento == "credito") {
+                return total += total * 0.03
+            } else if (metodoDePagamento == "debito") {
+                return total
+            } else {
+                return "Forma de pagamento inválida"
             }
         }
-        if (extraQueijo == true) {                                            //
-            const temPrincipal = verificaçãoExtra.some((extra) => {
-                return extra == "sanduiche"
-            })
-            if (!temPrincipal) {
-                valorDaCompraFormatado = "Item extra não pode ser pedido sem o principal"
 
+        return formaDePagamento(this.metodoDePagamento)
+    }
+    }
+    temPrincipal = (temPrincipal1, temExtra1, temPrincipal2, temExtra2) => {
+        temPrincipal1 = this.codigo.some((codigo) => {
+            return codigo == "cafe"
+        })
+        temPrincipal2 = this.codigo.some((codigo) => {
+            return codigo == "sanduiche"
+        })
+        temExtra1 = this.codigo.some((codigo) => {
+            return codigo == "chantily"
+        })
+        temExtra2 = this.codigo.some((codigo) => {
+            return codigo == "queijo"
+        })
+        if (temExtra1 || temExtra2) {
+            if (!temPrincipal1 || !temPrincipal2) {
+                console.log("Item extra não pode ser pedido sem o principal")
             }
         }
-        if (verificaçãoCarrinhoeQtd[0] == "") {                               // VERIFICACOES REGRAS
-            valorDaCompraFormatado = "Não há itens no carrinho de compra!"
-        } else if (produtoexistente == 0) {                               // VERIFICACOES REGRAS
-            valorDaCompraFormatado = "Não há itens no carrinho de compra!"
+    }
+    temCarrinho = (carrinho) => {
+        if (this.carrinho.length == 0) {
+            console.log("Não há itens no carrinho de compra!")
         }
-        else if (produtoexistente == undefined) {
-            valorDaCompraFormatado = "Item inválido!"
-        } else if (verificaçãoCarrinhoeQtd[1] == 0) {
-            valorDaCompraFormatado = "Quantidade inválida!"
+
+    }
+    temQuantidade = (quantidade) => {
+        let zero = this.quantidade.some((qtd) => {
+            qtd == ""
+            return console.log("Quantidade inválida!")
+        })
         }
-        const pagamentoValido = metodoDePagamento == false ? valorDaCompraFormatado = "Forma de pagamento inválida!" : valorDaCompraFormatado
-        return valorDaCompraFormatado
+    temItem = (codigo) => {
+        let item = this.cardapio.some((codigo) => {
+            return codigo == this.cardapio
+        })
     }
 
 }
-console.log(new CaixaDaLanchonete().calcularValorDaCompra("dinheiro", ["cafe,1"]))
 
-export { CaixaDaLanchonete };
+console.log(new CaixaDaLanchonete().calcularValorDaCompra("dinheiro", ["cafe,"]))
+
+//export { CaixaDaLanchonete };
